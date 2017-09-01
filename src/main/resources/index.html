@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>html-console</title>
+    <style>
+        html, body {
+            height: 100%;
+            width: 100%;
+            background-color: #2a2725;
+        }
+    </style>
+    <script src=""></script><!--jquery path-->
+</head>
+<body>
+<div id="console"></div>
+<script>
+    var dsole = document.getElementById("console");
+
+    function getFocus(fon) {
+        if (fon === '' || fon === undefined) fon = 'innow';
+        var focuser = document.getElementById(fon);
+        focuser.focus();
+    }
+
+    // 键盘事件
+    function keyPress(e) {
+        // 重新获取监听
+        getFocus();
+        var keycode = e.which;
+        var realkey = String.fromCharCode(e.which);
+//         console.log("按键码: " + keycode + " 字符: " + realkey);
+
+        var innow = document.getElementById("innow");
+
+        switch (keycode) {
+            case 13: // 回车
+                e.preventDefault();
+                var command = innow.innerHTML;
+                // 放入历史指令
+                historyCMD.push(command);
+                if ('clear' === command) {
+                    console.log('do clear');
+                    dsole.innerHTML = '';
+                } else {
+                    // 去除
+                    var code = innow.innerText.replace(/[\u00A0]/g, " ");
+                    sendCode(code);
+                    innow.removeAttribute('id');
+                    innow.removeAttribute('contenteditable');
+                }
+                doStart();
+                break;
+            case 38: // 上按钮
+                e.preventDefault();
+                var text = historyCMD.get(-1);
+                if(text === undefined) {
+                    return;
+                }
+                innow.innerHTML = text;
+                setCaretPosition(innow, text.length);
+                break;
+            case 40: // 下按钮
+                e.preventDefault();
+                var text = historyCMD.get(1);
+                if(text === undefined) {
+                    return;
+                }
+                innow.innerHTML = text;
+                setCaretPosition(innow, text.length);
+                break;
+            default:
+                break;
+        }
+
+    }
+
+    document.onkeydown = keyPress;
+
+    function doStart() {
+        var schart = "<p><span style='color:#00ff00;font-size:16px;font-weight:bold;'>$&nbsp</span>"
+            + "<span id='innow' contenteditable='true' style='color:white;font-size:16px;outline:none;'></span></p>";
+        dsole.innerHTML = dsole.innerHTML + schart;
+        getFocus();
+    }
+
+    // 历史指令栈
+    function HistoryCMD() {
+        this.i = 0;
+        this.list = new Array();
+        this.push = function (data) {
+            if (data === '' || data === undefined) return;
+            this.list.push(data);
+            this.i = this.list.length;
+        }
+        this.get = function (idx) {
+            this.i += idx;
+            if (this.i >= this.list.length)
+                this.i = this.list.length - 1;
+            else if (this.i <= 0)
+                this.i = 0;
+            return this.list[this.i];
+        }
+    }
+
+    var historyCMD = new HistoryCMD();
+
+    // 设置光标位置
+    function setCaretPosition(ctrl, pos) {
+        if (document.all) {
+            ctrl.range = document.createRange();
+            ctrl.range.select();
+            ctrl.range.moveStart("character", pos);
+        } else {
+            var content = ctrl.firstChild;
+            ctrl.range = window.getSelection().getRangeAt(0);
+            ctrl.range.setStart(content, pos);
+        }
+    }
+
+    function sendCode(code) {
+        // TODO 后台交互
+        $.ajax({
+            url: '/api/terminal.do',
+            type: 'post',
+            async: false,
+            data: {'code': code},
+            dataType: 'json',
+            success: function (data) {
+                var color = 'red';
+                var msg = data.msg;
+                if (data.success || data.success === undefined) {
+                    color = 'white';
+                }
+                if (data.msg === undefined) {
+                    msg = data;
+                }
+                var temp = '<br/><span style="font-size:16px;outline:none;color:' + color + '">' + JSON.stringify(msg) + '</span>';
+                $("#innow").append(temp);
+            },
+            error: function(e) {
+                var color = 'red';
+                var temp = '<br/><span style="font-size:16px;outline:none;color:' + color + '">' + JSON.stringify(e) + '</span>';
+                $("#innow").append(temp);
+            }
+        });
+    }
+
+    doStart();
+</script>
+</body>
+</html>
