@@ -14,7 +14,7 @@ public abstract class AbstractCommand implements Command {
         Map<String, Command> subTerminals = TerminalContext.getSubTerminal(request.getTerminal());
         if (!getAllowNoSub()) {//need sub cn.fay.terminal
             if (request.getSubTerminals() == null || request.getSubTerminals().size() == 0) {//does not input sub
-                throw new RuntimeException(String.format("{}: illegal operator with no sub cn.fay.terminal", request.getTerminal()));
+                throw new RuntimeException(String.format("%s: illegal operator with no sub cn.fay.terminal", request.getTerminal()));
             } else {
                 for (SubTerminalRequest subRequest : request.getSubTerminals()) {
                     if (subTerminals != null && !subTerminals.containsKey(subRequest.getSubTerminal())) {//sub not suit
@@ -55,7 +55,7 @@ public abstract class AbstractCommand implements Command {
         Object[] params = new Object[2 + subCommands.size()];
         params[0] = superTerm;
         params[1] = subTerm;
-        StringBuilder log = new StringBuilder("{}: illegal option {}.===>>> usage:[");
+        StringBuilder log = new StringBuilder("%s: illegal option %s.===>>> usage:[");
         int index = 2;
         String sepa = " | ";
         for (String term : subCommands.keySet()) {

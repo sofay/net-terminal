@@ -153,7 +153,7 @@ public class TerminalContext {
         try {
             File rootDir = new File(location);
             if (!rootDir.isDirectory()) {
-                throw new RuntimeException(String.format("{} is not a directory.", location));
+                throw new RuntimeException(String.format("%s is not a directory.", location));
             }
             File[] files = rootDir.listFiles();
             result = files;
